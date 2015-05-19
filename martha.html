@@ -48,10 +48,33 @@
             }
         });
         
+        function buildAll(component, list) {
+            return R.map(function(x) {
+                return c(component, x)
+            }, list)
+        }
+        
+        function makeNavCategory(category) {
+            var name = category[0];
+            var items = category[1];
+            return (
+                c("li", null, [
+                    c("div", {className: "nav-item-" + name}, name),
+                    c("ul", null, buildAll(NavItem, items))
+                ])
+            );
+        }
+                
+        var NavItem = React.createClass({
+           render: function() {
+               return d.li(null, this.props.title);
+           } 
+        });
+        
         var Navigation = React.createClass({
             render: function() {
-                var posts = this.props.posts;
-                debugger
+                var categories = this.props.categories;
+                return d.div(null, R.map(makeNavCategory, categories));
             }
         })
         
@@ -61,7 +84,7 @@
             getInitialState: function() {
                 return {
                     blog: null,
-                    posts: null
+                    categories: []
                 }    
             },
             
@@ -69,27 +92,25 @@
                 var self = this;
                 return this.props.ajax.getPosts()
                 .then(function(results) {
-                    var data = getCategories(results.posts);
-                    debugger
                     return self.setState({
                         blog: results.blog,
-                        posts: R.groupBy(R.prop("type"), results.posts)
+                        categories: getCategories(results.posts)
                     });
                 });
             },
             
             render: function() {
                 var blog = this.state.blog;
-                var posts = this.state.posts;
                 
                 if (!blog) {
                     return c("div", null, "loading");
                 }
                 
-                return wrap(
+                var categories = { categories: this.state.categories };
+                return wrap([
                     c(Header, blog),
-                    c(Navigation, posts)
-                );
+                    c(Navigation, categories)
+                ]);
             } 
         });
         
@@ -128,11 +149,16 @@
         }
         
         // Data munging funcitons
-        function addPostToCategory(obj, cat, post) {
-            if (!obj[cat]) {
-                return obj[cat] = [post];
-            } else {
-                return obj[cat].concat([post]);
+        function addPostToCategory(post) {
+            return function(obj, cat) {
+                var newObj = R.merge(obj, {});
+                if (!newObj[cat]) {
+                    newObj[cat] = [post];
+                    return newObj;
+                } else {
+                    newObj[cat].concat([post]);
+                    return newObj;
+                }
             }
         }
         
@@ -150,17 +176,14 @@
         function getCategory(acc, post) {
             var tags = post.tags;
             var categories = R.reduce(categoriesFromTags, [], tags);
-            if (!R.empty(categories)) {
-                console.log(categories);
-                return R.reduce(addPostToCategory, acc, categories);
+            if (!R.isEmpty(categories)) {
+                return R.reduce(addPostToCategory(post), acc, categories);
             } else {
                 return acc
             }
         }
         
-        function getCategories(posts) {
-            return R.reduce(getCategory, {}, posts)
-        }
+        var getCategories = R.compose(R.toPairs, R.reduce(getCategory, {}));
         
         // Ajax helper class
         
