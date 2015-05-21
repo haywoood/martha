@@ -34,6 +34,13 @@
     <script src="https://cdn.rawgit.com/ramda/ramda/master/dist/ramda.min.js" type="text/javascript"></script>
 
     <!-- The Template -->
+    <style>
+        .nav ul, nav li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
     <script>
         "use strict";
         
@@ -58,7 +65,7 @@
             var name = category[0];
             var items = category[1];
             return (
-                c("li", null, [
+                c("div", {className: "nav-section"}, [
                     c("div", {className: "nav-item-" + name}, name),
                     c("ul", null, buildAll(NavItem, items))
                 ])
@@ -67,7 +74,9 @@
                 
         var NavItem = React.createClass({
            render: function() {
-               return d.li(null, this.props.title);
+               debugger
+               var title = this.props.title || this.props.date;
+               return d.li(null, title);
            } 
         });
         
@@ -88,7 +97,7 @@
                 }    
             },
             
-            componentWillMount: function() {
+            componentDidMount: function() {
                 var self = this;
                 return this.props.ajax.getPosts()
                 .then(function(results) {
@@ -107,7 +116,7 @@
                 }
                 
                 var categories = { categories: this.state.categories };
-                return wrap([
+                return d.div({className: "nav"}, [
                     c(Header, blog),
                     c(Navigation, categories)
                 ]);
@@ -151,25 +160,24 @@
         // Data munging funcitons
         function addPostToCategory(post) {
             return function(obj, cat) {
-                var newObj = R.merge(obj, {});
-                if (!newObj[cat]) {
-                    newObj[cat] = [post];
-                    return newObj;
+                if (!obj[cat]) {
+                    obj[cat] = [post];
+                    return obj;
                 } else {
-                    newObj[cat].concat([post]);
-                    return newObj;
+                    var newArr = obj[cat].concat([post]);
+                    obj[cat] = newArr;
+                    return obj;
                 }
             }
         }
         
         function categoriesFromTags(acc, tag) {
-            var category = null;
             var match = tag.match("category");
             if (match) {
-                category = R.last(tag.split(":"));
+                var category = R.last(tag.split(":"));
                 return acc.concat([category]);
             } else {
-                return acc
+                return acc;
             }
         }
         
