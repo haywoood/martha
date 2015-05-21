@@ -28,6 +28,98 @@
     <!-- Mount node -->
     <div class="site"></div>
     
+     <h1>{Title}</h1>
+
+        {block:Description}
+            <p id="description">{Description}</p>
+        {/block:Description}
+
+        <ol id="posts">
+            {block:Posts}{block:Text}
+                    <li class="post text">
+                        {block:Title}
+                            <h3><a href="{Permalink}">{Title}</a></h3>
+                        {/block:Title}{Body}
+                    </li>
+                {/block:Text}{block:Photo}
+                    <li class="post photo">
+                        <img src="{PhotoURL-500}" alt="{PhotoAlt}"/>
+
+                        {block:Caption}
+                            <div class="caption">{Caption}</div>
+                        {/block:Caption}
+                    </li>
+                {/block:Photo}{block:Panorama}
+                    <li class="post panorama">
+                        {LinkOpenTag}
+                            <img src="{PhotoURL-Panorama}" alt="{PhotoAlt}"/>
+                        {LinkCloseTag}{block:Caption}
+                            <div class="caption">{Caption}</div>
+                        {/block:Caption}
+                    </li>
+                {/block:Panorama}{block:Photoset}
+                    <li class="post photoset">
+                        {Photoset-500}{block:Caption}
+                            <div class="caption">{Caption}</div>
+                        {/block:Caption}
+                    </li>
+                {/block:Photoset}{block:Quote}
+                    <li class="post quote">
+                        "{Quote}"
+
+                        {block:Source}
+                            <div class="source">{Source}</div>
+                        {/block:Source}
+                    </li>
+                {/block:Quote}{block:Link}
+                    <li class="post link">
+                        <a href="{URL}" class="link" {Target}>{Name}</a>
+
+                        {block:Description}
+                            <div class="description">{Description}</div>
+                        {/block:Description}
+                    </li>
+                {/block:Link}{block:Chat}
+                    <li class="post chat">
+                        {block:Title}
+                            <h3><a href="{Permalink}">{Title}</a></h3>
+                        {/block:Title}
+
+                        <ul class="chat">
+                            {block:Lines}
+                                <li class="{Alt} user_{UserNumber}">
+                                    {block:Label}
+                                        <span class="label">{Label}</span>
+                                    {/block:Label}{Line}
+                                </li>
+                            {/block:Lines}
+                        </ul>
+                    </li>
+                {/block:Chat}{block:Video}
+                    <li class="post video">
+                        {Video-500}{block:Caption}
+                            <div class="caption">{Caption}</div>
+                        {/block:Caption}
+                    </li>
+                {/block:Video}{block:Audio}
+                    <li class="post audio">
+                        {AudioEmbed}{block:Caption}
+                            <div class="caption">{Caption}</div>
+                        {/block:Caption}
+                    </li>
+                {/block:Audio}{/block:Posts}
+        </ol>
+
+        <p id="footer">
+            {block:PreviousPage}
+                <a href="{PreviousPage}">&#171; Previous</a>
+            {/block:PreviousPage}{block:NextPage}
+                <a href="{NextPage}">Next &#187;</a>
+            {/block:NextPage}
+
+            <a href="/archive">Archive</a>
+        </p>
+    
     <!-- Can't live without these -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/react-with-addons.js" type="text/javascript"></script>
     <script src="http://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
@@ -40,6 +132,18 @@
             margin: 0;
             padding: 0;
         }
+        .nav-section {
+            margin-bottom: 15px;
+        }
+        .nav-section-title {
+            color: black;
+        }
+        .nav-item-link {
+            color: blue;
+        }
+        .header {
+            font-weight: bold;
+        }
     </style>
     <script>
         "use strict";
@@ -51,7 +155,7 @@
         var Header = React.createClass({
             render: function() {
                 var title = this.props.title;
-                return d.h1(null, title);
+                return d.div({className: "header"}, title);
             }
         });
         
@@ -66,17 +170,16 @@
             var items = category[1];
             return (
                 c("div", {className: "nav-section"}, [
-                    c("div", {className: "nav-item-" + name}, name),
-                    c("ul", null, buildAll(NavItem, items))
+                    c("div", {className: "nav-section-title nav-item-" + name}, name),
+                    c("ul", {className: "nav-item-wrap"}, buildAll(NavItem, items))
                 ])
             );
         }
                 
         var NavItem = React.createClass({
            render: function() {
-               debugger
-               var title = this.props.title || this.props.date;
-               return d.li(null, title);
+               var title = this.props.title || new Date(this.props.date).getTime();
+               return d.li({className: "nav-item-link"}, title);
            } 
         });
         
